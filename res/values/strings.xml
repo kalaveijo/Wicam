@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">WiCam</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+	<string name="ssid">SSID</string>
+    <string name="pw">Password</string>
+    <string name="settings">GoPro WIFI settings</string>   
+    <string name="license">WiCam version 1.0, Copyright (C) 2013 Ville Raitio. WiCam comes with ABSOLUTELY NO WARRANTY. This is free software, and you are welcome to redistribute it under certain conditions. For more information, see: http://www.gnu.org/licenses/gpl.html</string>
+    
+</resources>
