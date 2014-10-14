@@ -6,12 +6,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -30,8 +32,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 
-public class GoProActivity extends Activity implements SurfaceHolder.Callback, OnPreparedListener, OnClickListener{
-	private GetCont myTask; 
+public class GoProActivity extends Activity implements SurfaceHolder.Callback,
+		OnPreparedListener, OnClickListener {
+	private GetCont myTask;
 	private MediaPlayer mediaPlayer;
 	private SurfaceHolder surfaceHolder;
 	private SurfaceView playerSurfaceView;
@@ -43,6 +46,7 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback, O
 	private String videoUrl;
 	private boolean recording = false;
 	private ProgressBack myProgress;
+	private ArrayList<String> filesToDownload;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -50,300 +54,314 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback, O
 		setContentView(R.layout.activity_camera);
 		setBipVolume();
 		setCameraMode("video");
-		
-		recordBtn = (ImageButton)findViewById(R.id.recbtn);
+
+		recordBtn = (ImageButton) findViewById(R.id.recbtn);
 		recordBtn.setOnClickListener(this);
-		
-		playerSurfaceView = (SurfaceView)findViewById(R.id.playersurface);
 
-        surfaceHolder = playerSurfaceView.getHolder();
-        surfaceHolder.addCallback(this);
-        
-        myUrl= "http://10.5.5.9:8080/videos/DCIM/100GOPRO/"; //this is where all the gopro videos are on the camera
-		
-		
- }
+		playerSurfaceView = (SurfaceView) findViewById(R.id.playersurface);
 
-	
+		surfaceHolder = playerSurfaceView.getHolder();
+		surfaceHolder.addCallback(this);
 
-public void onClick(View v){
-		
-		if (v.getId()==R.id.recbtn){
-			if(recording==false){
-				recording=true;
+		myUrl = "http://10.5.5.9:8080/videos/DCIM/100GOPRO/"; // this is where
+																// all the gopro
+																// videos are on
+																// the camera
+
+//		filesToDownload = new ArrayList<String>();
+//		downloaderThread = new DownloaderThread(filesToDownload);
+//		downloaderThread.start();
+	}
+
+	public void onClick(View v) {
+
+		if (v.getId() == R.id.recbtn) {
+			if (recording == false) {
+				recording = true;
 				recordBtn.setImageResource(R.drawable.stop);
 				Record();
-			}else{
-				recording=false;
+			} else {
+				recording = false;
 				recordBtn.setImageResource(R.drawable.rec);
 				Record();
-				
-				
-				//parse the url and get the last mp4
-				//start download on post execute
+
+				// parse the url and get the last mp4
+				// start download on post execute
 				myParse = new parseUrl();
-				
+
 				myParse.execute("");
-				
-				
+
 			}
 		}
-}
+	}
 
+	private class parseUrl extends AsyncTask<String, Void, String> {
 
+		String myHrefName;
+		String File;
 
-private class parseUrl extends AsyncTask<String, Void, String>{
-	
-	String myHrefName;
-	String File;
-	//ArrayList<String> descriptionList;
-	
+		// ArrayList<String> descriptionList;
 
-    @Override
-    protected void onPreExecute()
-    {
-  
-        //descriptionList = new ArrayList<String>();
-    }
-    
-    @Override
-    protected String doInBackground(String... params) {
-        try {
-            Document doc = Jsoup.connect(myUrl).get();
+		@Override
+		protected void onPreExecute() {
 
-            
-            Elements links = doc.select(".link");
-            //the following loop finally gets the latest MP4 filename so we can download it to the phone
-            for( Element link: links )
-            {	
-				
-                myHrefName = link.attr("href");
-                String myHrefNameArray[] = myHrefName.split("\\.");
-                
-                File = myHrefNameArray[myHrefNameArray.length-2];
-                myHref = File+".MP4"; //final filename
-                
-            
-            }
+			// descriptionList = new ArrayList<String>();
+		}
 
-        } catch (Exception e) {
-        	e.printStackTrace();
-        }
-        return null;
-    }
+		@Override
+		protected String doInBackground(String... params) {
+			try {
+				Document doc = Jsoup.connect(myUrl).get();
 
-    @Override
-    protected void onPostExecute(String result)
-    {
-        setVideoUrl(myHref);
-        
-        //start progress and download
-        myProgress = new ProgressBack();
-		
-		myProgress.execute("");
-    }
+				Elements links = doc.select(".link");
+				// the following loop finally gets the latest MP4 filename so we
+				// can download it to the phone
+				for (Element link : links) {
 
-}
+					myHrefName = link.attr("href");
+					String myHrefNameArray[] = myHrefName.split("\\.");
 
-public void setVideoUrl(String filename){
-	videoUrl = myUrl+filename;
-}
-	
- public void turnOnCamera(){
-		ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+					File = myHrefNameArray[myHrefNameArray.length - 2];
+					myHref = File + ".MP4"; // final filename
+
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			setVideoUrl(myHref);
+
+			// start progress and download
+			myProgress = new ProgressBack();
+
+			myProgress.execute("");
+		}
+
+	}
+
+	public void setVideoUrl(String filename) {
+		videoUrl = myUrl + filename;
+	}
+
+	public void turnOnCamera() {
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if (networkInfo != null && networkInfo.isConnected()) {
-		try{
-		URL myUrl = new URL("http://10.5.5.9/bacpac/PW?t=gopro2013&p=%01");
-		myTask = new GetCont();
-		myTask.execute(myUrl);
-		}
-		catch (Exception e) {
-		Log.e("URL","URL creation ", e);
-		}
+			try {
+				URL myUrl = new URL(
+						"http://10.5.5.9/bacpac/PW?t=gopro2013&p=%01");
+				myTask = new GetCont();
+				myTask.execute(myUrl);
+			} catch (Exception e) {
+				Log.e("URL", "URL creation ", e);
+			}
 		} else {
-		// error message
+			// error message
 		}
 	}
- 
- public void Record(){
-		ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+
+	public void Record() {
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if (networkInfo != null && networkInfo.isConnected()) {
-			if(recording){
-				try{
-					//does the following when recording
-					URL myUrl = new URL("http://10.5.5.9/bacpac/SH?t=gopro2013&p=%01");
+			if (recording) {
+				try {
+					// does the following when recording
+
+					// start record
+					URL myUrl = new URL(
+							"http://10.5.5.9/bacpac/SH?t=gopro2013&p=%01");
 					myTask = new GetCont();
 					myTask.execute(myUrl);
+				} catch (Exception e) {
+					Log.e("URL", "URL creation ", e);
 				}
-				catch (Exception e) {
-					Log.e("URL","URL creation ", e);
-				}
-			}else{
-				try{
-					//does the following when stopping recording
-					URL myUrl = new URL("http://10.5.5.9/bacpac/SH?t=gopro2013&p=%00");
+			} else {
+				try {
+
+					// does the following when stopping recording
+
+					// start record
+					URL myUrl = new URL(
+							"http://10.5.5.9/bacpac/SH?t=gopro2013&p=%00");
 					myTask = new GetCont();
 					myTask.execute(myUrl);
-				}
-				catch (Exception e) {
-					Log.e("URL","URL creation ", e);
+				} catch (Exception e) {
+					Log.e("URL", "URL creation ", e);
 				}
 			}
 		} else {
-		// error message
+			// error message
+		}
 	}
-}
 
- 
- 
- public void setBipVolume(){
-		ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+	public void setBipVolume() {
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
 		if (networkInfo != null && networkInfo.isConnected()) {
-				try{
-					URL myUrl = new URL("http://10.5.5.9/camera/BS?t=gopro2013&p=%00");//sets the bip volume to 0
+			try {
+				URL myUrl = new URL(
+						"http://10.5.5.9/camera/BS?t=gopro2013&p=%00");// sets
+																		// the
+																		// bip
+																		// volume
+																		// to 0
+				myTask = new GetCont();
+				myTask.execute(myUrl);
+			} catch (Exception e) {
+				Log.e("URL", "URL creation ", e);
+			}
+
+		} else {
+			// error message
+		}
+	}
+
+	// code in case you need to switch to photo mode from video or vice versa
+	public void setCameraMode(String mode) {
+		ConnectivityManager connMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+		NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
+		if (networkInfo != null && networkInfo.isConnected()) {
+			if (mode == "video") {
+				try {
+					URL myUrl = new URL(
+							"http://10.5.5.9/camera/CM?t=gopro2013&p=%00");
 					myTask = new GetCont();
 					myTask.execute(myUrl);
+				} catch (Exception e) {
+					Log.e("URL", "URL creation ", e);
 				}
-				catch (Exception e) {
-					Log.e("URL","URL creation ", e);
+			} else if (mode == "photo") {
+				try {
+					URL myUrl = new URL(
+							"http://10.5.5.9/camera/CM?t=gopro2013&p=%01");
+					myTask = new GetCont();
+					myTask.execute(myUrl);
+				} catch (Exception e) {
+					Log.e("URL", "URL creation ", e);
 				}
+			}
+		}
+	}
+
+	@Override
+	public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void surfaceCreated(SurfaceHolder arg0) {
+
+		try {
+
+			// set resolution WVGA-60
+			URL setReso = new URL("http://10.5.5.9/camera/VR?t=gopro2013&p=%00");
+			myTask = new GetCont();
+			myTask.execute(setReso);
+
+			mediaPlayer = new MediaPlayer();
+			mediaPlayer.setDisplay(surfaceHolder);
+			mediaPlayer.setDataSource(videoSrc);
+			//mediaPlayer.prepare();
+			mediaPlayer.prepareAsync(); //gotta try this
+			mediaPlayer.setOnPreparedListener(this);
+			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalStateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void surfaceDestroyed(SurfaceHolder arg0) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onPrepared(MediaPlayer mp) {
+		mediaPlayer.start();
+	}
+
+	/*
+	 * Following is the code for downloads progress.
+	 */
+
+	private class ProgressBack extends AsyncTask<String, String, String> {
+//		ProgressDialog PD;
+		ActionBar actionBar = getActionBar();
+
+		@Override
+		protected void onPreExecute() {
 			
-		} else {
-		// error message
-	}
-} 
- 
-//code in case you need to switch to photo mode from video or vice versa
-public void setCameraMode(String mode){
-	ConnectivityManager connMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-	NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
-	if (networkInfo != null && networkInfo.isConnected()) {
-		if (mode=="video"){
-			try{
-				URL myUrl = new URL("http://10.5.5.9/camera/CM?t=gopro2013&p=%00");
-				myTask = new GetCont();
-				myTask.execute(myUrl);
-			}
-			catch (Exception e) {
-				Log.e("URL","URL creation ", e);
-			}
-		}else if(mode=="photo"){
-			try{
-				URL myUrl = new URL("http://10.5.5.9/camera/CM?t=gopro2013&p=%01");
-				myTask = new GetCont();
-				myTask.execute(myUrl);
-			}
-			catch (Exception e) {
-				Log.e("URL","URL creation ", e);
-			}
+			actionBar.setTitle("Downloading: " + videoUrl);
+			
 		}
+
+		@Override
+		protected String doInBackground(String... arg0) {
+
+			DownloadFile(videoUrl, myHref);
+			return null;
+		}
+
+		protected void onPostExecute(String result) {
+
+			actionBar.setTitle("Downloaded: " + videoUrl);
+
+		}
+
 	}
-}
 
- @Override
- public void surfaceChanged(SurfaceHolder arg0, int arg1, int arg2, int arg3) {
-  // TODO Auto-generated method stub
-  
- }
+	public void DownloadFile(String fileURL, String fileName) {
+		try {
 
- @Override
- public void surfaceCreated(SurfaceHolder arg0) {
+			String RootDir = Environment.getExternalStorageDirectory()
+					+ File.separator + "DCIM/WiCam";
+			System.out.println(RootDir);
+			File RootFile = new File(RootDir);
+			RootFile.mkdir();
+			// File root = Environment.getExternalStorageDirectory();
 
-        try {
-         mediaPlayer = new MediaPlayer();
-            mediaPlayer.setDisplay(surfaceHolder);
-            mediaPlayer.setDataSource(videoSrc);
-            mediaPlayer.prepare();
-            mediaPlayer.setOnPreparedListener(this);
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        } catch (IllegalArgumentException e) {
-        	// TODO Auto-generated catch block
-        	e.printStackTrace();
-        } catch (SecurityException e) {
-        	// TODO Auto-generated catch block
-        	e.printStackTrace();
-        } catch (IllegalStateException e) {
-        	// TODO Auto-generated catch block
-        	e.printStackTrace();
-        } catch (IOException e) {
-        	// TODO Auto-generated catch block
-        	e.printStackTrace();
-        }
- }
+			Log.d("file directory", RootDir);
 
- @Override
- public void surfaceDestroyed(SurfaceHolder arg0) {
-  // TODO Auto-generated method stub
-  
- }
+			URL u = new URL(fileURL);
+			HttpURLConnection c = (HttpURLConnection) u.openConnection();
+			c.setRequestMethod("GET");
+			c.setDoOutput(true);
+			c.connect();
+			FileOutputStream f = new FileOutputStream(new File(RootFile,
+					fileName));
+			InputStream in = c.getInputStream();
+			byte[] buffer = new byte[1024];
+			int len1 = 0;
 
- @Override
- public void onPrepared(MediaPlayer mp) {
-  mediaPlayer.start();
- }
- 
- /*
-  * Following is the code for downloads progress.
-  */
- 
- private class ProgressBack extends AsyncTask<String,String,String> {
-     ProgressDialog PD;
-    @Override
-    protected void onPreExecute() {
-        PD= ProgressDialog.show(GoProActivity.this,"Progress", "Please Wait ...", true);
-        PD.setCancelable(true);
-    }
+			while ((len1 = in.read(buffer)) > 0) {
+				f.write(buffer, 0, len1);
+			}
 
-    @Override
-    protected String doInBackground(String... arg0) {
-    	
-    	DownloadFile(videoUrl,myHref);            
-    return null;
-    }
-    protected void onPostExecute(String result) {
-       
-    	PD.dismiss();
+			f.close();
 
-    }
+		} catch (Exception e) {
 
-}
- 
- public void DownloadFile(String fileURL, String fileName) {
-     try {
-    	 
-         String RootDir = Environment.getExternalStorageDirectory()
-                 + File.separator + "DCIM/WiCam";
-         System.out.println(RootDir);
-         File RootFile = new File(RootDir);
-         RootFile.mkdir();
-         // File root = Environment.getExternalStorageDirectory();
-         
-         URL u = new URL(fileURL);
-         HttpURLConnection c = (HttpURLConnection) u.openConnection();
-         c.setRequestMethod("GET");
-         c.setDoOutput(true);
-         c.connect();
-         FileOutputStream f = new FileOutputStream(new File(RootFile,
-                 fileName));
-         InputStream in = c.getInputStream();
-         byte[] buffer = new byte[1024];
-         int len1 = 0;
-         
-         while ((len1 = in.read(buffer)) > 0) {                          
-             f.write(buffer, 0, len1);               
-         }
-         
-         f.close();
-         
+			Log.d("Error....", e.toString());
+		}
 
-     } catch (Exception e) {
-
-         Log.d("Error....", e.toString());
-     }
-
- }
+	}
 
 }
