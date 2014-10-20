@@ -38,3 +38,7 @@ Icon
 *.class
 *.apk
 bin/classes.dex
+bin/Wicam.apk
+bin/resources.ap_
+*.class
+bin/classes.dex

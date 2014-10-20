@@ -13,6 +13,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import fi.metropolia.villevra.util.URLStringWrapper;
+
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -46,7 +48,7 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 	private String videoUrl;
 	private boolean recording = false;
 	private ProgressBack myProgress;
-	private ArrayList<String> filesToDownload;
+	private ArrayList<URLStringWrapper> filesToDownload;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +64,7 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 		surfaceHolder = playerSurfaceView.getHolder();
 		surfaceHolder.addCallback(this);
-
+		filesToDownload = new ArrayList<URLStringWrapper>();
 		myUrl = "http://10.5.5.9:8080/videos/DCIM/100GOPRO/"; // this is where
 																// all the gopro
 																// videos are on
@@ -134,8 +136,10 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 		@Override
 		protected void onPostExecute(String result) {
-			setVideoUrl(myHref);
-
+			// add latest video information to download stack
+			// Stringwrapper holds both full path and filename since parsing is boring
+			filesToDownload.add(new URLStringWrapper(setVideoUrl(myHref), myHref));
+			
 			// start progress and download
 			myProgress = new ProgressBack();
 
@@ -144,8 +148,9 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 	}
 
-	public void setVideoUrl(String filename) {
+	public String setVideoUrl(String filename) {
 		videoUrl = myUrl + filename;
+		return videoUrl;
 	}
 
 	public void turnOnCamera() {
@@ -260,18 +265,13 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 		try {
 
-			// set resolution WVGA-60
-			URL setReso = new URL("http://10.5.5.9/camera/VR?t=gopro2013&p=%00");
-			myTask = new GetCont();
-			myTask.execute(setReso);
 
 			mediaPlayer = new MediaPlayer();
 			mediaPlayer.setDisplay(surfaceHolder);
 			mediaPlayer.setDataSource(videoSrc);
-			//mediaPlayer.prepare();
-			mediaPlayer.prepareAsync(); //gotta try this
+			mediaPlayer.prepareAsync();
 			mediaPlayer.setOnPreparedListener(this);
-			mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+		//	mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC); // i wonder if removing audio helps preview
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -308,27 +308,38 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 		@Override
 		protected void onPreExecute() {
-			
-			actionBar.setTitle("Downloading: " + videoUrl);
+			if(!filesToDownload.isEmpty())
+			actionBar.setTitle("Downloading: " + filesToDownload.get(0).getFileName());
 			
 		}
 
 		@Override
 		protected String doInBackground(String... arg0) {
 
-			DownloadFile(videoUrl, myHref);
+			downloadFile(filesToDownload.get(0));
 			return null;
 		}
 
 		protected void onPostExecute(String result) {
-
-			actionBar.setTitle("Downloaded: " + videoUrl);
+			actionBar.setTitle("Downloaded: " + filesToDownload.get(0).getFileName());
+			filesToDownload.remove(0);
+			
+			/*
+			 * Downloads are chained, if there are still files left to download, new ProgressBack is created at the end recursively
+			 */
+			if(!filesToDownload.isEmpty()){
+				myProgress = new ProgressBack();
+				myProgress.execute("");
+			}
 
 		}
 
 	}
-
-	public void DownloadFile(String fileURL, String fileName) {
+	
+	/*
+	 * Gets URLStringWrapper object that contains full filepath and filename parsed
+	 */
+	public void downloadFile(URLStringWrapper fileNames) {
 		try {
 
 			String RootDir = Environment.getExternalStorageDirectory()
@@ -340,13 +351,13 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 			Log.d("file directory", RootDir);
 
-			URL u = new URL(fileURL);
+			URL u = new URL(fileNames.getFullPath());
 			HttpURLConnection c = (HttpURLConnection) u.openConnection();
 			c.setRequestMethod("GET");
 			c.setDoOutput(true);
 			c.connect();
 			FileOutputStream f = new FileOutputStream(new File(RootFile,
-					fileName));
+					fileNames.getFileName()));
 			InputStream in = c.getInputStream();
 			byte[] buffer = new byte[1024];
 			int len1 = 0;
