@@ -42,3 +42,8 @@ bin/Wicam.apk
 bin/resources.ap_
 *.class
 bin/classes.dex
+gen/fi/metropolia/villevra/wicam/R.java
+*.class
+bin/resources.ap_
+bin/Wicam.apk
+bin/classes.dex

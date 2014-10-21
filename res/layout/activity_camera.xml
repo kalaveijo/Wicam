@@ -22,9 +22,12 @@
         <ImageButton
             android:id="@+id/recbtn"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:scaleType="centerInside"
+            android:layout_height="wrap_content"
             android:src="@drawable/rec" />
+        <Button
+            android:id="@+id/downloadbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     </LinearLayout>
 
 </LinearLayout>

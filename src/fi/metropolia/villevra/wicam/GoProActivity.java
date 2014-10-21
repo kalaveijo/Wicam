@@ -32,6 +32,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.ImageButton;
 
 public class GoProActivity extends Activity implements SurfaceHolder.Callback,
@@ -42,6 +43,7 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 	private SurfaceView playerSurfaceView;
 	private String videoSrc = "http://10.5.5.9:8080/live/amba.m3u8";
 	private ImageButton recordBtn;
+	private Button downloadButton;
 	private parseUrl myParse;
 	private String myHref;
 	private String myUrl;
@@ -49,6 +51,7 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 	private boolean recording = false;
 	private ProgressBack myProgress;
 	private ArrayList<URLStringWrapper> filesToDownload;
+	private boolean downloadInProgress = false;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +62,8 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 		recordBtn = (ImageButton) findViewById(R.id.recbtn);
 		recordBtn.setOnClickListener(this);
+		downloadButton = (Button) findViewById(R.id.downloadbutton);
+		downloadButton.setOnClickListener(this);
 
 		playerSurfaceView = (SurfaceView) findViewById(R.id.playersurface);
 
@@ -93,6 +98,14 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 				myParse.execute("");
 
+			}
+		}
+		if(v.getId() == R.id.downloadbutton){
+			
+			if(!downloadInProgress){
+						// start progress and download
+						myProgress = new ProgressBack();
+						myProgress.execute("");
 			}
 		}
 	}
@@ -140,10 +153,7 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 			// Stringwrapper holds both full path and filename since parsing is boring
 			filesToDownload.add(new URLStringWrapper(setVideoUrl(myHref), myHref));
 			
-			// start progress and download
-			myProgress = new ProgressBack();
-
-			myProgress.execute("");
+			
 		}
 
 	}
@@ -315,14 +325,19 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 		@Override
 		protected String doInBackground(String... arg0) {
-
+			if(!filesToDownload.isEmpty()){
+			downloadInProgress = true;
 			downloadFile(filesToDownload.get(0));
+			}
 			return null;
 		}
 
 		protected void onPostExecute(String result) {
+			if(!filesToDownload.isEmpty()){
+			downloadInProgress = false;
 			actionBar.setTitle("Downloaded: " + filesToDownload.get(0).getFileName());
 			filesToDownload.remove(0);
+			}
 			
 			/*
 			 * Downloads are chained, if there are still files left to download, new ProgressBack is created at the end recursively
