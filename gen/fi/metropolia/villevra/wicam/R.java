@@ -31,26 +31,27 @@ public final class R {
         public static final int watch=0x7f020007;
     }
     public static final class id {
-        public static final int action_settings=0x7f080012;
-        public static final int cameraNumb=0x7f080005;
-        public static final int camerabtn=0x7f080003;
-        public static final int editText1=0x7f08000c;
-        public static final int editText2=0x7f08000e;
-        public static final int editText4=0x7f080011;
-        public static final int groupSelect=0x7f080010;
-        public static final int license=0x7f080013;
-        public static final int linearLayout1=0x7f08000f;
-        public static final int pauseButton=0x7f080008;
+        public static final int action_settings=0x7f080013;
+        public static final int cameraNumb=0x7f080006;
+        public static final int camerabtn=0x7f080004;
+        public static final int downloadbutton=0x7f080002;
+        public static final int editText1=0x7f08000d;
+        public static final int editText2=0x7f08000f;
+        public static final int editText4=0x7f080012;
+        public static final int groupSelect=0x7f080011;
+        public static final int license=0x7f080014;
+        public static final int linearLayout1=0x7f080010;
+        public static final int pauseButton=0x7f080009;
         public static final int playersurface=0x7f080000;
-        public static final int pwIN=0x7f08000b;
+        public static final int pwIN=0x7f08000c;
         public static final int recbtn=0x7f080001;
-        public static final int shareButton=0x7f080007;
-        public static final int ssidIN=0x7f08000a;
-        public static final int textView1=0x7f080009;
-        public static final int toast_root=0x7f080002;
-        public static final int uploadButton=0x7f08000d;
-        public static final int videoView=0x7f080006;
-        public static final int watchbtn=0x7f080004;
+        public static final int shareButton=0x7f080008;
+        public static final int ssidIN=0x7f08000b;
+        public static final int textView1=0x7f08000a;
+        public static final int toast_root=0x7f080003;
+        public static final int uploadButton=0x7f08000e;
+        public static final int videoView=0x7f080007;
+        public static final int watchbtn=0x7f080005;
     }
     public static final class layout {
         public static final int activity_camera=0x7f030000;

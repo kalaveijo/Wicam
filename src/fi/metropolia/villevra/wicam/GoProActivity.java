@@ -66,6 +66,7 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 		downloadButton.setOnClickListener(this);
 
 		playerSurfaceView = (SurfaceView) findViewById(R.id.playersurface);
+		
 
 		surfaceHolder = playerSurfaceView.getHolder();
 		surfaceHolder.addCallback(this);
