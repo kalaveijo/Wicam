@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -14,11 +15,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import fi.metropolia.villevra.util.URLStringWrapper;
-
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnPreparedListener;
@@ -76,6 +78,9 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 																// videos are on
 																// the camera
 
+		removeDownloadedFilesFromPreferences();
+		populateDownloadList();
+		
 //		filesToDownload = new ArrayList<String>();
 //		downloaderThread = new DownloaderThread(filesToDownload);
 //		downloaderThread.start();
@@ -153,8 +158,11 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 			// add latest video information to download stack
 			// Stringwrapper holds both full path and filename since parsing is boring
 			filesToDownload.add(new URLStringWrapper(setVideoUrl(myHref), myHref));
-			
-			
+			SharedPreferences fileList = getPreferences(0);
+			Editor editor = fileList.edit();
+			editor.putBoolean(myHref, true);
+			editor.commit();
+			Log.d("debug", "added " + myHref + " to preferences" );
 		}
 
 	}
@@ -309,6 +317,52 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 		mediaPlayer.start();
 	}
 
+	
+	
+	public void removeDownloadedFilesFromPreferences() {
+		
+		// get correct folder and make it if does not exist
+		String RootDir = Environment.getExternalStorageDirectory()
+				+ File.separator + "DCIM/WiCam";
+		System.out.println(RootDir);
+		File RootFile = new File(RootDir);
+		RootFile.mkdir();
+		
+		SharedPreferences fileList = getPreferences(0);
+
+		
+		//go through files 
+	    if (RootFile.exists()) {
+	        File[] files = RootFile.listFiles();
+	        for (int i = 0; i < files.length; ++i) {
+	            File file = files[i];
+
+	            // for each file, compare it against shared preference
+	            // if match, remove file from preference
+	            
+	            if(fileList.contains(file.getName())){
+	            	Editor editor = fileList.edit();
+	            	Log.d("debug", "removed " + file.getName() + " from preferences");
+	            	editor.remove(file.getName());
+	            	editor.commit();
+	            }
+	            
+	        }
+	    }
+	} 
+	
+	// checks sharedpreferences for filenames
+	// adds filenames to list
+	public void populateDownloadList(){
+		SharedPreferences fileList = getPreferences(0);
+		
+		for(Map.Entry<String, ?> r : fileList.getAll().entrySet()){
+			URLStringWrapper url = new URLStringWrapper(setVideoUrl(r.getKey()), r.getKey());
+			Log.d("debug", "populated downloadlist with " + url.getFileName());
+			filesToDownload.add(url);
+		}
+	}
+	
 	/*
 	 * Following is the code for downloads progress.
 	 */
@@ -319,8 +373,9 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 		@Override
 		protected void onPreExecute() {
-			if(!filesToDownload.isEmpty())
+			if(!filesToDownload.isEmpty()){
 			actionBar.setTitle("Downloading: " + filesToDownload.get(0).getFileName());
+			}
 			
 		}
 
@@ -339,7 +394,7 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 			actionBar.setTitle("Downloaded: " + filesToDownload.get(0).getFileName());
 			filesToDownload.remove(0);
 			}
-			
+			removeDownloadedFilesFromPreferences();
 			/*
 			 * Downloads are chained, if there are still files left to download, new ProgressBack is created at the end recursively
 			 */
@@ -391,4 +446,5 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 
 	}
 
+	
 }
