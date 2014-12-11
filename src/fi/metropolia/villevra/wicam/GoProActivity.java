@@ -61,6 +61,9 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 	 * Currently software has feature where all files taken with camera can be downloaded even after shutdown.
 	 * List of filenames are stored in preferences and each time this Activity is started, preferences are loaded.
 	 * 
+	 * URLStringWrapper is dumpclass that stores filename and full file path separately because of lazy lazy. Should be refactored away
+	 * 
+	 * Files are downloaded recursively. See ProgressBack class inside GoProActivity class.
 	 */
 	
 	

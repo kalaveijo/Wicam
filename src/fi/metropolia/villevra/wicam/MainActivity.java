@@ -54,6 +54,14 @@ public class MainActivity extends Activity implements OnClickListener{
 	private GetCont myTask;
 	MenuItem license;
 
+	
+	/*
+	 * This class contains lots of errors on bootup. Prolly related to GetCont class implementation and reason it is called twice in a row
+	 * (turnOnCamera() and turnOnPreview())
+	 * 
+	 * Also all errors are silently ignored for no reason, needs logger.
+	 */
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -65,8 +73,14 @@ public class MainActivity extends Activity implements OnClickListener{
 		ImageButton cameraBtn = (ImageButton)findViewById(R.id.camerabtn);
 		cameraBtn.setOnClickListener(this);
 		
-		ImageButton watchBtn = (ImageButton)findViewById(R.id.watchbtn); //this button is used to add a loggable game to the database
-		watchBtn.setOnClickListener(this);
+		/*
+		 * Second button is commented out because implementation could not be started. Plan was to use this button for OptionActivity (totally
+		 * unimplemented and lacks design).
+		 * 
+		 */
+		
+		//ImageButton watchBtn = (ImageButton)findViewById(R.id.watchbtn); //this button is used to add a loggable game to the database
+		//watchBtn.setOnClickListener(this);
 		
 	}
 	
