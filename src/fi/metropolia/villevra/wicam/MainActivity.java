@@ -132,9 +132,7 @@ public class MainActivity extends Activity implements OnClickListener{
 			Intent i = new Intent(getApplicationContext(), GoProActivity.class);
 			startActivity(i);
 		}else if(v.getId()==R.id.watchbtn){
-			//go to WatchActivity
-			Intent i = new Intent(getApplicationContext(), WatchActivity.class);
-			startActivity(i);
+			
 		}
 	}
 
@@ -149,8 +147,8 @@ public class MainActivity extends Activity implements OnClickListener{
 	public boolean onMenuItemSelected(MenuItem item) {
 	    switch (item.getItemId()) {
 	    case R.id.license:
-	    	Intent i = new Intent(getApplicationContext(), LicenseActivity.class);
-			startActivity(i);
+//	    	Intent i = new Intent(getApplicationContext(), LicenseActivity.class);
+//			startActivity(i);
 	    }
 	    return true;
 	}
