@@ -55,6 +55,17 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 	private ArrayList<URLStringWrapper> filesToDownload;
 	private boolean downloadInProgress = false;
 	
+	/*
+	 * Notes from last developer.
+	 * 
+	 * Currently software has feature where all files taken with camera can be downloaded even after shutdown.
+	 * List of filenames are stored in preferences and each time this Activity is started, preferences are loaded.
+	 * 
+	 */
+	
+	
+	
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -78,12 +89,14 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 																// videos are on
 																// the camera
 
+		
+		/*
+		 * First check if there are files listed in preference that can be found from device
+		 * Second get list of filenames that need to be downloaded
+		 */
 		removeDownloadedFilesFromPreferences();
 		populateDownloadList();
-		
-//		filesToDownload = new ArrayList<String>();
-//		downloaderThread = new DownloaderThread(filesToDownload);
-//		downloaderThread.start();
+
 	}
 
 	public void onClick(View v) {
@@ -121,12 +134,9 @@ public class GoProActivity extends Activity implements SurfaceHolder.Callback,
 		String myHrefName;
 		String File;
 
-		// ArrayList<String> descriptionList;
-
 		@Override
 		protected void onPreExecute() {
 
-			// descriptionList = new ArrayList<String>();
 		}
 
 		@Override
